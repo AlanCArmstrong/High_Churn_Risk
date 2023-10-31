@@ -75,7 +75,7 @@ from (select * from customer order by random() limit 100) as A
 where churn = 'Yes')/100 as rand
 
 take 100 samples and standard deviation and mean is:
-.0426 and .265 (there are 2650/1000 churners)
+.0426 and .265 (there are 2650/10000 churners)
 
 3.29 * .0426 + .265 = .405
 
