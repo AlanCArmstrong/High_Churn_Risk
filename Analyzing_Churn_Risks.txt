@@ -1,0 +1,180 @@
+Research Question:
+Out of the categories with the highest observed churn rates, what are those customers' biggest concerns according to the surveys?
+
+
+
+Columns from Customers:
+Customer_id                - text, Primary Key 
+Churn                      - text
+Techie                     - text
+Port_Modem                 - text
+Tablet                     - text
+Yearly_Equip_Failure       - integer
+Contacts                   - integer
+Email                      - integer
+Outage_Sec_Week            - numeric
+Bandwidth_gp_Year          - numeric
+Monthly_Charge             - numeric
+Tenure                     - numeric
+Age                        - integer
+Children                   - integer
+Population                 - integer
+
+Columns from Survey_Responses:
+Customer_id                - Varchar(10), Primary Key
+Timely_Reponse             - Varchar(1)
+Timely_Fixes               - Varchar(1)
+Timely_Replacements        - Varchar(1)   
+Reliability                - Varchar(1)
+Options                    - Varchar(1)
+Respectful_Response        - Varchar(1)
+Courteous_Exchange         - Varchar(1)
+Evidence_of_Act_Listening  - Varchar(1)
+
+
+
+Creating survey responses table:
+
+CREATE TABLE public."Survey_responses"
+(
+    "Customer_id" character varying NOT NULL,
+    "Timely_Reponse" character varying NOT NULL,
+    "Timely_Fixes " character varying NOT NULL,
+    "Timely_Replacements" character varying NOT NULL,
+    "Reliability" character varying NOT NULL,
+    "Options " character varying NOT NULL,
+    "Respectful_Response" character varying NOT NULL,
+    "Courteous_Exchange" character varying NOT NULL,
+    "Evidence_of_Act_Listening" character varying NOT NULL,
+    PRIMARY KEY ("Customer_id")
+);
+
+ALTER TABLE public.customer
+    ADD FOREIGN KEY ("Customer_id")
+    REFERENCES public."Survey_responses" ("Customer_id")
+    NOT VALID;
+
+END;
+
+
+
+Finding base churn rate:
+
+select cast(count(customer_id) as float)/(select cast(count(customer_id) as float) from customer) as base_churn_rate
+from customer
+where churn = 'Yes'
+
+base_churn_rate = 0.265
+
+
+
+Taking samples to find 'high'(99.9th percentile) churn rate to compare potential outliers with:
+
+select (select cast(count(customer_id) as float) as churn_rate
+from (select * from customer order by random() limit 100) as A
+where churn = 'Yes')/100 as rand
+
+take 100 samples and standard deviation and mean is:
+.0426 and .265 (there are 2650/1000 churners)
+
+3.29 * .0426 + .265 = .405
+
+
+
+Finding all potential outliers for churn rate for categorical data:
+
+select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and techie = 'Yes')/(select count(customer_id) from customer where techie = 'Yes' ) as base_churn_rate
+from customer
+limit 1
+
+the rest are the same except ctrl+h category name
+
+0.33055390113162597 = techie_yes
+0.2517726234827545 = techie_no
+0.2687215556474969 = port_modem_yes
+0.26151761517615174 = port_modem_no
+0.26312270143764627 = tablet_yes
+0.2658011128549008 = tablet_no
+...
+
+
+
+Code to find churn rate for continuous data:
+
+select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and yearly_equip_faiure > 3)/(select count(customer_id) from customer where yearly_equip_faiure > 3) as yearly_equip_failure_churn_rate
+from customer
+limit 1
+
+examples higher than .405:
+
+45.7% = bandwidth_gp_year < 4000
+44.6% = monthly_charge > 180
+50.6% = tenure < 12
+
+All three conditions simultaneously: 78.6% (1437 people) vs a base rate of 26.5%
+This is the consumer group that the company should focus on retaining.
+
+
+
+Code to check their survey response data:
+
+select sum(cast(s.timely_responses as int))
+from (select customer_id from customer where bandwidth_gp_year < 4000 and monthly_charge > 180 and tenure < 12) c inner join survey_responses s on c.customer_id = s.customer_id
+
+Timely_Reponse = 5067/1437                =3.53
+Timely_Fixes = 5092/1437                  =3.5
+Timely_Replacements = 5057/1437           =3.52
+Reliability = 5045/1437                   =3.51
+Options = 5023/1437                       =3.49
+Respectful_Response = 5110/1437           =3.56
+Courteous_Exchange = 5058/1437            =3.52
+Evidence_of_Active_Listening = 5022/1437  =3.49
+
+Comparing with customers in the opposite group (2983 people, churn rate .0058%)
+(bandwidth > 4000, monthly_charge < 180, tenure > 12):
+
+Timely_Reponse = 10003/2983               =3.35
+Timely_Fixes = 10044/2983                 =3.37
+Timely_Replacements = 9963/2983           =3.34
+Reliability = 10163/2983                  =3.41
+Options = 10098/2983                      =3.39
+Respectful_Response = 10026/2983          =3.36
+Courteous_Exchange = 10189/2983           =3.42
+Evidence_of_Active_Listening = 10080/2983 =3.38
+
+Comparing with all 10000 customers:
+
+Timely_Reponse                            =3.39
+Timely_Fixes                              =3.51
+Timely_Replacements                       =3.49
+Reliability                               =3.5
+Options                                   =3.49
+Respectful_Response                       =3.5
+Courteous_Exchange                        =3.51
+Evidence_of_Active_Listening              =3.5
+
+There is not enough support for any particular category that is deemed as more
+important, according to the focal consumer group.
+
+
+
+Checking which time frames are most relevant to churn concerns:
+
+select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and tenure < 2)/(select count(customer_id) from customer where tenure < 2) as yearly_equip_failure_churn_rate
+from customer
+limit 1
+
+When tenure is < 2, churn rate is 62%.
+
+select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and tenure > 28 and tenure < 34)/(select count(customer_id) from customer where tenure > 28 and tenure < 34) as yearly_equip_failure_churn_rate
+from customer
+limit 1
+
+Churn does not return to average levels until 28 months
+
+select count(customer_id)
+from customer
+where tenure < 28
+
+4960, or about half of customers are below this threshold.
+Data should be updated as soon as it is obtained as to keep updated on these customers.
