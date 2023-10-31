@@ -8,4 +8,4 @@ I also visualized the main findings, including the elevated churn rates of subst
 ([https://github.com/AlanCArmstrong/High_Churn_Risk/blob/main/High_Churn_by_Consumer_Category_Bar_Chart.png])
 
 As well as the heightened churn rates at the beginning of customers' tenure and the slow drop off below the average rate:
-([
+([https://github.com/AlanCArmstrong/High_Churn_Risk/blob/main/Average_Churn_over_Tenure.png])
