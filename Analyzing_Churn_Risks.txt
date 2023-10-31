@@ -1,5 +1,5 @@
 Research Question:
-Out of the categories with the highest observed churn rates, what are those customers' biggest concerns according to the surveys?
+What are the customers with the highest observed churn rates biggest concerns, according to the surveys?
 
 
 
@@ -74,20 +74,19 @@ select (select cast(count(customer_id) as float) as churn_rate
 from (select * from customer order by random() limit 100) as A
 where churn = 'Yes')/100 as rand
 
-take 100 samples and standard deviation and mean is:
-.0426 and .265 (there are 2650/10000 churners)
+take 100 samples and sample standard deviation and population mean is:
+0.0426 and 0.265
 
-3.29 * .0426 + .265 = .405
+Using z-score calculation to find outliers for high churn:
+3.29 * 0.0426 + 0.265 = 0.405
 
 
 
-Finding all potential outliers for churn rate for categorical data:
+Finding all potential outliers for churn rate in the categorical data:
 
 select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and techie = 'Yes')/(select count(customer_id) from customer where techie = 'Yes' ) as base_churn_rate
 from customer
 limit 1
-
-the rest are the same except ctrl+h category name
 
 0.33055390113162597 = techie_yes
 0.2517726234827545 = techie_no
@@ -97,15 +96,17 @@ the rest are the same except ctrl+h category name
 0.2658011128549008 = tablet_no
 ...
 
+There were no categories with a churn rate of above 0.405
 
 
-Code to find churn rate for continuous data:
+
+Code to find potential outliers in the continuous data:
 
 select (select cast(count(customer_id) as float) from customer where churn = 'Yes' and yearly_equip_faiure > 3)/(select count(customer_id) from customer where yearly_equip_faiure > 3) as yearly_equip_failure_churn_rate
 from customer
 limit 1
 
-examples higher than .405:
+examples that were higher than 0.405:
 
 45.7% = bandwidth_gp_year < 4000
 44.6% = monthly_charge > 180
@@ -121,37 +122,37 @@ Code to check their survey response data:
 select sum(cast(s.timely_responses as int))
 from (select customer_id from customer where bandwidth_gp_year < 4000 and monthly_charge > 180 and tenure < 12) c inner join survey_responses s on c.customer_id = s.customer_id
 
-Timely_Reponse = 5067/1437                =3.53
-Timely_Fixes = 5092/1437                  =3.5
-Timely_Replacements = 5057/1437           =3.52
-Reliability = 5045/1437                   =3.51
-Options = 5023/1437                       =3.49
-Respectful_Response = 5110/1437           =3.56
-Courteous_Exchange = 5058/1437            =3.52
-Evidence_of_Active_Listening = 5022/1437  =3.49
+Timely_Reponse = 5067/1437                = 3.53
+Timely_Fixes = 5092/1437                  = 3.5
+Timely_Replacements = 5057/1437           = 3.52
+Reliability = 5045/1437                   = 3.51
+Options = 5023/1437                       = 3.49
+Respectful_Response = 5110/1437           = 3.56
+Courteous_Exchange = 5058/1437            = 3.52
+Evidence_of_Active_Listening = 5022/1437  = 3.49
 
 Comparing with customers in the opposite group (2983 people, churn rate .0058%)
 (bandwidth > 4000, monthly_charge < 180, tenure > 12):
 
-Timely_Reponse = 10003/2983               =3.35
-Timely_Fixes = 10044/2983                 =3.37
-Timely_Replacements = 9963/2983           =3.34
-Reliability = 10163/2983                  =3.41
-Options = 10098/2983                      =3.39
-Respectful_Response = 10026/2983          =3.36
-Courteous_Exchange = 10189/2983           =3.42
-Evidence_of_Active_Listening = 10080/2983 =3.38
+Timely_Reponse = 10003/2983               = 3.35
+Timely_Fixes = 10044/2983                 = 3.37
+Timely_Replacements = 9963/2983           = 3.34
+Reliability = 10163/2983                  = 3.41
+Options = 10098/2983                      = 3.39
+Respectful_Response = 10026/2983          = 3.36
+Courteous_Exchange = 10189/2983           = 3.42
+Evidence_of_Active_Listening = 10080/2983 = 3.38
 
 Comparing with all 10000 customers:
 
-Timely_Reponse                            =3.39
-Timely_Fixes                              =3.51
-Timely_Replacements                       =3.49
-Reliability                               =3.5
-Options                                   =3.49
-Respectful_Response                       =3.5
-Courteous_Exchange                        =3.51
-Evidence_of_Active_Listening              =3.5
+Timely_Reponse                            = 3.39
+Timely_Fixes                              = 3.51
+Timely_Replacements                       = 3.49
+Reliability                               = 3.5
+Options                                   = 3.49
+Respectful_Response                       = 3.5
+Courteous_Exchange                        = 3.51
+Evidence_of_Active_Listening              = 3.5
 
 There is not enough support for any particular category that is deemed as more
 important, according to the focal consumer group.
