@@ -3,7 +3,7 @@
 In this project, I used SQL to find the consumer groups with the highest churn rates.
 The annotated code and the conclusions are shown in the following link:
 
-([https://github.com/AlanCArmstrong/High_Churn_Risk/blob/main/Analyzing_Churn_Risks.txt])
+([https://github.com/AlanCArmstrong/SQL_Identifying_Predictors_of_Churn/blob/main/SQL_Code.txt])
 
 I also visualized the main findings using Python's MatPlotLib.Pyplot, including the elevated churn rates of substantial portions of the database:
 
