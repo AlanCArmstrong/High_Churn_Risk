@@ -1,4 +1,4 @@
-#Predictors of Churn
+# Predictors of Churn
 
 In this project, I used SQL to find the consumer groups with the highest churn rates.
 The annotated code and the conclusions are shown in the following link:
